@@ -15,6 +15,10 @@
 ![Static Badge](https://img.shields.io/badge/Spring%20Boot%203.1.0%20-green) 
 ![Static Badge](https://img.shields.io/badge/Oracle%2012c-red)
 ![Static Badge](https://img.shields.io/badge/SonarLint-blue)
+
+## ARQUITECTURA DEL PROYECTO
+- Modular
+
 ## Modelo de datos
 
 ![image](https://github.com/Stivennevits/ada-test/assets/108912463/7fa273c2-d589-4a9e-9e0c-6f001b13ee05)
@@ -280,5 +284,270 @@ END;
 ![image](https://github.com/Stivennevits/ada-test/assets/108912463/de6a6fcc-a0e1-43db-b8d9-b046b0e9088a)
 
 
+# Prueba Senior
+Para abordar este punto se tomó un enfoque diferente, en el cual se propone subir un archivo txt para hacer los insert en la tabla de forma masiva.
+Se valida el archivo con el fín de evitar inserts inapropiados validando los tipos de datos, los registros duplicados se devuelven en el endpoint con su respectivo mensaje del porqué no se tuvieron en cuenta, con el fin de que el usuario sepa que registros no se pudieron insertar. Además tambien se hacen diferentes validaciones como:
+- Que no hayan ids duplicados de la entidad COMPANY_VERSION
+- Que el parámetro correspondiente al companyId exista en los registros, sino es añadido a los registros de error.
+- Que el parámetro corresponfiente al versionId exista en los registros, sino es añadido a los registros de error.
+- Si no quedaron registros válidos no se realiza el insert.
+
+Finalmente se hace insert con los registros que superaron los diferentes filtros.
+
+El archivo txt debe tener la siguiente estructura:
+- companyVersionId|companyId|versionId|description
+
+  ![image](https://github.com/Stivennevits/ada-test/assets/108912463/00225ba0-5b20-47c4-bbd2-81ace822d6b2)
+
+
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/953eb825-f3fb-4208-a3ac-524724812381)
+
+## Respuesta con los registros duplicados
+
+```json
+[
+    {
+        "companyVersionId": 1,
+        "companyId": 2,
+        "versionId": 3,
+        "description": "desc 2",
+        "error": "Registro duplicado"
+    },
+    {
+        "companyVersionId": 1,
+        "companyId": 2,
+        "versionId": 3,
+        "description": "desc 4",
+        "error": "Registro duplicado"
+    },
+    {
+        "companyVersionId": 22,
+        "companyId": 28,
+        "versionId": 4,
+        "description": "desc 8",
+        "error": "Ya hay un registro dentro del archivo con el mismo ID"
+    },
+    {
+        "companyVersionId": 24,
+        "companyId": 10,
+        "versionId": 11,
+        "description": "desc 10",
+        "error": "Ya existe un registro en COMPANY_VERSION con el mismo ID"
+    },
+    {
+        "companyVersionId": 22,
+        "companyId": 2,
+        "versionId": 4,
+        "description": "desc 6",
+        "error": "Ya hay un registro dentro del archivo con el mismo ID"
+    },
+    {
+        "companyVersionId": 23,
+        "companyId": 6,
+        "versionId": 6,
+        "description": "desc 9",
+        "error": "Ya existe un registro en COMPANY_VERSION con el mismo ID"
+    },
+    {
+        "companyVersionId": 8,
+        "companyId": 2,
+        "versionId": 3,
+        "description": "desc 5",
+        "error": "Ya existe un registro en COMPANY_VERSION con el mismo ID"
+    },
+    {
+        "companyVersionId": 1,
+        "companyId": 2,
+        "versionId": 3,
+        "description": "desc 1",
+        "error": "No existe una empresa con el id 2"
+    },
+    {
+        "companyVersionId": 3,
+        "companyId": 2,
+        "versionId": 3,
+        "description": "desc 3",
+        "error": "Ya existe un registro en COMPANY_VERSION con el mismo ID"
+    },
+    {
+        "companyVersionId": 22,
+        "companyId": 23,
+        "versionId": 4,
+        "description": "desc 7",
+        "error": "Ya hay un registro dentro del archivo con el mismo ID"
+    }
+]
+```
+
+
+## Código Java 
+
+
+
+```java
+
+    @Data
+    public class MassiveRequest {
+        private Long id;
+        private Long companyId;
+        private Long versionId;
+        private String description;
+    }
+
+   @Data
+   public class CompanyVersionResponse {
+       private Long companyVersionId;
+       private Long companyId;
+       private Long versionId;
+       private String description;
+       private String error;
+   }
+
+     @PostMapping(MASSIVE)
+    @ResponseStatus(OK)
+    public List<CompanyVersionResponse> massive (@RequestParam MultipartFile file){
+        log.info("CompanyVersionController::massive --file [{}] ", file.getOriginalFilename());
+        return service.massive(file);
+    }
+
+   public List<CompanyVersionResponse> massive(MultipartFile file) {
+        log.info("CompanyVersionService::massive --file [{}] ", file.getOriginalFilename());
+        List<MassiveRequest> requests = new ArrayList<>();
+        readAndValidateFile(file,requests);
+        log.info("list {}", requests );
+        List<CompanyVersionResponse> responses = new ArrayList<>();
+        processDuplicateRequests(requests, responses);
+        List<Long> companyVersionIds = repository.findIds();
+        List<Long> companyIds = repository.findCompanyIds();
+        List<Long> versionIds = repository.findVersionIds();
+        processRequests(requests, companyVersionIds, companyIds, versionIds, responses);
+        processVersionRecords(requests, responses);
+        if(!requests.isEmpty()){
+            repository.saveAll(CompanyVersionMapper.mapToMassive(requests));
+        }
+        return responses;
+    }
+
+    public static List<CompanyVersionRecord> mapToMassive(List<MassiveRequest> requests) {
+        List<CompanyVersionRecord> records = new ArrayList<>();
+        for (MassiveRequest request : requests) {
+            CompanyVersionRecord companyVersionRecord = new CompanyVersionRecord();
+            companyVersionRecord.setId(request.getId());
+            companyVersionRecord.setCompanyId(request.getCompanyId());
+            companyVersionRecord.setVersionId(request.getVersionId());
+            companyVersionRecord.setVersionCompanyDescription(request.getDescription());
+            records.add(companyVersionRecord);
+        }
+        return records;
+    }
+
+
+   public static CompanyVersionResponse mapToResponse(MassiveRequest massiveRequest, String error) {
+        CompanyVersionResponse response = new CompanyVersionResponse();
+        response.setCompanyVersionId(massiveRequest.getId());
+        response.setCompanyId(massiveRequest.getCompanyId());
+        response.setVersionId(massiveRequest.getVersionId());
+        response.setDescription(massiveRequest.getDescription());
+        response.setError(error);
+        return response;
+    }
+
+
+
+ private void processDuplicateRequests(List<MassiveRequest> requests, List<CompanyVersionResponse> responses) {
+        log.info("CompanyVersionService::processDuplicateRequests  ");
+        Map<String, MassiveRequest> uniqueRequests = new HashMap<>();
+        for (MassiveRequest request : requests) {
+            String key = request.getId() + "-" + request.getCompanyId() + "-" + request.getVersionId();
+            if (uniqueRequests.containsKey(key)) {
+                CompanyVersionResponse response = CompanyVersionMapper.mapToResponse(request, "Registro duplicado");
+                responses.add(response);
+            } else {
+                uniqueRequests.put(key, request);
+            }
+        }
+        requests.clear();
+        requests.addAll(uniqueRequests.values());
+    }
+
+    private void processVersionRecords(List<MassiveRequest> requests, List<CompanyVersionResponse> responses) {
+        log.info("CompanyVersionService::processVersionRecords  ");
+        Iterator<MassiveRequest> iterator = requests.iterator();
+        while (iterator.hasNext()) {
+            MassiveRequest request = iterator.next();
+            Optional<CompanyVersionRecord> versionRecord = repository.findByCompanyIdAndVersionId(request.getCompanyId(), request.getVersionId());
+            if (!requests.isEmpty() && versionRecord.isPresent()) {
+                iterator.remove();
+                CompanyVersionResponse response = CompanyVersionMapper.mapToResponse(request, "Ya existe un registro con el mismo id de empresa y id de versión");
+                responses.add(response);
+            }
+        }
+    }
+
+
+    private void processRequests(List<MassiveRequest> requests, List<Long> companyVersionIds, List<Long> companyIds, List<Long> versionIds, List<CompanyVersionResponse> responses) {
+        log.info("CompanyVersionService::processRequests  ");
+        List<MassiveRequest> requestsToRemove = new ArrayList<>();
+        Iterator<MassiveRequest> iterator = requests.iterator();
+        while (iterator.hasNext()) {
+            MassiveRequest request = iterator.next();
+            if ((!requests.isEmpty()) && (requests.stream().filter(r -> r.getId().equals(request.getId())).count() > 1)) {
+                requestsToRemove.add(request);
+                CompanyVersionResponse response = CompanyVersionMapper.mapToResponse(request, "Ya hay un registro dentro del archivo con el mismo ID");
+                responses.add(response);
+            } else if (!requests.isEmpty() && companyVersionIds.contains(request.getId())) {
+                requestsToRemove.add(request);
+                CompanyVersionResponse response = CompanyVersionMapper.mapToResponse(request, "Ya existe un registro en COMPANY_VERSION con el mismo ID");
+                responses.add(response);
+            } else if (!requests.isEmpty() && !companyIds.contains(request.getCompanyId())) {
+                CompanyVersionResponse response = CompanyVersionMapper.mapToResponse(request, "No existe una empresa con el id " + request.getCompanyId());
+                responses.add(response);
+                requestsToRemove.add(request);
+            } else {
+                if (!requests.isEmpty() && !versionIds.contains(request.getVersionId())) {
+                    CompanyVersionResponse response = CompanyVersionMapper.mapToResponse(request, "No existe una versión con el id " + request.getVersionId());
+                    responses.add(response);
+                    requestsToRemove.add(request);
+                }
+            }
+        }
+        requests.removeAll(requestsToRemove);
+    }
+
+
+    public void readAndValidateFile(MultipartFile file, List<MassiveRequest> requests) {
+        log.info("CompanyVersionService::readAndValidateFile  ");
+        if (file.isEmpty()) {
+            throw new AdaException(i18NComponent.getMessage(ErrorMessages.FILE_IS_EMPTY, file.getOriginalFilename()));
+        }
+        Pattern pattern = Pattern.compile("^(\\d+)\\|(\\d+)\\|(\\d+)\\|(.+)$");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Matcher matcher = pattern.matcher(line);
+                if (!matcher.find()) {
+                    throw new AdaException(i18NComponent.getMessage(ErrorMessages.ERROR_INVALID_FILE, line));
+                }
+                Long id = Long.valueOf(matcher.group(1));
+                Long companyId = Long.valueOf(matcher.group(2));
+                Long versionId = Long.valueOf(matcher.group(3));
+                String description = matcher.group(4);
+
+                MassiveRequest request = new MassiveRequest();
+                request.setId(id);
+                request.setCompanyId(companyId);
+                request.setVersionId(versionId);
+                request.setDescription(description);
+
+                requests.add(request);
+            }
+        } catch (IOException e) {
+            throw new AdaException(i18NComponent.getMessage(e.getMessage()));
+        }
+    }
+```
+
+
+##
 
 
