@@ -1,0 +1,6 @@
+rootProject.name = 'test'
+include 'ada-test-app'
+include 'ada-test-common'
+include 'ada-test-core'
+include 'ada-test-domain'
+

@@ -1,0 +1,4 @@
+dependencies {
+    implementation project(':ada-test-common')
+    implementation project(':ada-test-domain')
+}

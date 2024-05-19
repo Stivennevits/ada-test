@@ -1,0 +1,8 @@
+dependencies {
+    implementation project(':ada-test-common')
+    implementation project(':ada-test-domain')
+    implementation project(':ada-test-core')
+    implementation 'org.springframework.boot:spring-boot-starter-jetty'
+    implementation 'org.glassfish.jersey.core:jersey-client'
+    implementation 'org.glassfish.jersey.inject:jersey-hk2'
+}

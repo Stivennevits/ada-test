@@ -1,0 +1,3 @@
+dependencies {
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc8:12.2.0.1'
+}
