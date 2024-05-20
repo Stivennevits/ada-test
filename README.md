@@ -300,7 +300,8 @@ Finalmente se hace insert con los registros que superaron los diferentes filtros
 El archivo txt debe tener la siguiente estructura:
 - companyVersionId|companyId|versionId|description
 
-  ![image](https://github.com/Stivennevits/ada-test/assets/108912463/00225ba0-5b20-47c4-bbd2-81ace822d6b2)
+  ![image](https://github.com/Stivennevits/ada-test/assets/108912463/f3388c3f-9be7-4fcd-a051-5297ffe94c65)
+
 
 ```http
   POST /api/ada/company-version/massive
