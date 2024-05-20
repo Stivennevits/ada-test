@@ -289,6 +289,7 @@ END;
 # Prueba Senior
 Para abordar este punto se tomó un enfoque diferente, en el cual se propone subir un archivo txt para hacer los insert en la tabla de forma masiva.
 Se valida el archivo con el fín de evitar inserts inapropiados validando los tipos de datos, los registros duplicados se devuelven en el endpoint con su respectivo mensaje del porqué no se tuvieron en cuenta, con el fin de que el usuario sepa que registros no se pudieron insertar. Además tambien se hacen diferentes validaciones como:
+- Que el archivo tenga la estructura apropiada
 - Que no hayan ids duplicados de la entidad COMPANY_VERSION
 - Que el parámetro correspondiente al companyId exista en los registros, sino es añadido a los registros de error.
 - Que el parámetro corresponfiente al versionId exista en los registros, sino es añadido a los registros de error.
@@ -304,6 +305,9 @@ El archivo txt debe tener la siguiente estructura:
 ```http
   POST /api/ada/company-version/massive
 ```
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/71b611d0-8146-40fa-ab42-c44a15652a17)
+
+
 ![image](https://github.com/Stivennevits/ada-test/assets/108912463/953eb825-f3fb-4208-a3ac-524724812381)
 
 ## Respuesta con los registros duplicados
