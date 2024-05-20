@@ -17,7 +17,9 @@
 ![Static Badge](https://img.shields.io/badge/SonarLint-blue)
 
 ## ARQUITECTURA DEL PROYECTO
-- Modular
+- Modular con principios SOLID
+
+
 
 ## Modelo de datos
 
@@ -299,7 +301,9 @@ El archivo txt debe tener la siguiente estructura:
 
   ![image](https://github.com/Stivennevits/ada-test/assets/108912463/00225ba0-5b20-47c4-bbd2-81ace822d6b2)
 
-
+```http
+  POST /api/ada/company-version/massive
+```
 ![image](https://github.com/Stivennevits/ada-test/assets/108912463/953eb825-f3fb-4208-a3ac-524724812381)
 
 ## Respuesta con los registros duplicados
@@ -380,7 +384,7 @@ El archivo txt debe tener la siguiente estructura:
 ```
 
 
-## Código Java 
+## Código 
 
 
 
@@ -548,6 +552,90 @@ El archivo txt debe tener la siguiente estructura:
 ```
 
 
-##
+## CALCULADORA
+Se realizó la calculadora haciendo un endpoint para cada operación, puede encontrarse el código en el controlador CalculateController
+
+
+### SUMA
+```http
+  GET /api/ada/calculator/add
+```
+
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/f218b209-3963-4b79-9056-06b948f3b181)
+
+
+
+### RESTA
+```http
+  GET /api/ada/calculator/substract
+```
+
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/fb47ea44-0eff-4e92-ba78-88b5b95eb295)
+
+
+
+### MULTIPLICACIÓN
+```http
+  GET /api/ada/calculator/multiply
+```
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/f641cbc7-8294-4d16-be83-7d94bcd55532)
+
+
+
+
+### DIVISIÓN
+```http
+  GET /api/ada/calculator/divide
+```
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/a38b1120-7b55-4ce5-80b4-294c33e0cfd7)
+
+
+
+### RAICES
+```http
+  GET /api/ada/calculator/roots
+```
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/303e77a4-c4eb-41ef-8aba-1e3ab902c731)
+
+
+### POTENCIAS
+```http
+  GET /api/ada/calculator/power
+```
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/f642da1d-fd07-4ac9-b96f-91483f4c1ee4)
+
+
+# CREAR PALABRAS A PARTIR DE UN ARRAY DE CARACTERES
+
+En este punto también se propuso un enfoque diferente, en el cual el endpoint recibe una palabra y valída si dicha palabra se puede escribir con los caracteres disponibles, sin ser repetidos. Al final devuelve si fue posible o no, y si fue posible devuelve una lista con las posiciones utilizadas para escribir la palabra 
+
+```http
+  GET /api/ada/words/find-word
+```
+
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/29b157b0-62e4-4cf5-8e17-299dec031331)
+
+![image](https://github.com/Stivennevits/ada-test/assets/108912463/428aba45-96c0-4565-8ad7-5fcb427c57fe)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
